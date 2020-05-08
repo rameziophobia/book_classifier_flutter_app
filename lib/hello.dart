@@ -22,7 +22,7 @@ class UploadImageDemo extends StatefulWidget {
 }
 
 class UploadImageDemoState extends State<UploadImageDemo> {
-  static final String uploadEndPoint = 'http://ramezio.pythonanywhere.com/';
+  static final String uploadEndPoint = 'https://book-spine.herokuapp.com/';
   File _imageFile;
   String status = '';
   String base64Image;
@@ -143,7 +143,7 @@ class UploadImageDemoState extends State<UploadImageDemo> {
     dio.options.receiveTimeout = 50000;
 //    dio.options.headers = <Header Json>;
     FormData formData = FormData.fromMap({
-      "file": await MultipartFile.fromBytes(bytes, filename: 'ya rab')
+      "file": MultipartFile.fromBytes(bytes, filename: 'ya rab')
     });
 //    formData.fields.add("user_id");
     var response = await dio.post("",
@@ -151,10 +151,18 @@ class UploadImageDemoState extends State<UploadImageDemo> {
     options: Options(
     method: 'POST',
     responseType: ResponseType.json // or ResponseType.JSON
-    ));
+    )).catchError((onError){
 
-      var res = Map<String, dynamic>.from(response.data);
-      setStatus(response.statusCode == 200 ? res['title'] : errorMessage);
+    });
+
+  if (response != null){
+    var res = Map<String, dynamic>.from(response.data);
+    setStatus(response.statusCode == 200 ? res['title'] : errorMessage);
+  }else{
+    setStatus('error: null response');
+  }
+//      var res = Map<String, dynamic>.from(response.data);
+//      setStatus(response.statusCode == 200 ? res['title'] : errorMessage);
 //    }).catchError((error) {
 ////      setStatus('error');
 //    });
