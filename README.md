@@ -1,6 +1,6 @@
-# flutter_spine_classifier
+# cvc3
 
-A new Flutter project.
+A new Flutter application.
 
 ## Getting Started
 
