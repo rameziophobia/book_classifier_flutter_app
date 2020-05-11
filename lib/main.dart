@@ -4,12 +4,26 @@ import 'dart:ui';
 import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-import 'package:image_picker/image_picker.dart';
+
 import 'dart:async';
 
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'dart:io';
+import 'ImagePickScreen.dart';
+import 'CameraPickScreen.dart';
+
+
+
+import 'Book.dart';
+import 'database.dart';
+import 'book_detail.dart';
+
+
+
+
+
+
 
 
 void main() => runApp(MyApp());
@@ -23,9 +37,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
         routes: {
           // When navigating to the "/" route, build the FirstScreen widget.
-          '/': (context) => FirstScreen(),
+          '/': (context) => BookListScreen(),
           // When navigating to the "/second" route, build the SecondScreen widget.
-          '/second': (context) => SecondScreen(),
           '/image_pick': (context) => ImagePickScreen(),
           '/camera_pick': (context) => CameraPickScreen(),
         });
@@ -88,25 +101,35 @@ class RandomWords extends StatefulWidget {
   @override
   RandomWordsState createState() => new RandomWordsState();
 }
-class FirstScreen extends StatelessWidget {
+
+class BookListScreen extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() {
+    return MainScreen();
+  }
+}
+
+class MainScreen extends State<BookListScreen> {
+  DatabaseHelper databaseHelper = DatabaseHelper();
+  List<Book> bookList;
+  int count = 0;
+
+
   @override
   Widget build(BuildContext context) {
+    if (bookList == null) {
+      bookList = List<Book>();
+
+      updateListView();
+
+    }
+
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('cvc'),
+        title: Text('Main'),
       ),
-      body: Center(
-        child: RaisedButton(
-          child: Text('test'),
-          onPressed: () {
-            // Navigate to second route when tapped.
-           // Navigator.pushNamed(context, '/second');
-          },
-        ),
-
-
-      ),
-
+      body: getBookListView(),
 
 
       floatingActionButton: SpeedDial(
@@ -141,235 +164,106 @@ class FirstScreen extends StatelessWidget {
               onTap: () => Navigator.pushNamed(context, '/camera_pick')
           ),
           SpeedDialChild(
-            child: Icon(Icons.photo_library),
-            backgroundColor: Colors.red,
-            label: 'Gallery',
-            labelStyle: TextStyle(fontSize: 19.0),
-            onTap: () => Navigator.pushNamed(context, '/image_pick') // open gallery
+              child: Icon(Icons.photo_library),
+              backgroundColor: Colors.red,
+              label: 'Gallery',
+              labelStyle: TextStyle(fontSize: 19.0),
+              onTap: () =>
+                  Navigator.pushNamed(context, '/image_pick') // open gallery
+          ),
+          SpeedDialChild(
+              child: Icon(Icons.book),
+              backgroundColor: Colors.black,
+              label: 'Book(for debug)',
+              labelStyle: TextStyle(fontSize: 19.0),
+              onTap: () =>
+                  navigateToDetail(context,Book('', '', '','',''), 'Add Book')
           ),
         ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
-}
-
-class SecondScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Second Route"),
-      ),
-      body: Center(
-        child: RaisedButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          child: Text('Go back!'),
-        ),
-      ),
-    );
-  }
-}
 
 
-
-
-class ImagePickScreen extends StatefulWidget {
-
-  @override
-  _ImagePickScreenState createState() => _ImagePickScreenState();
-
-}
-
-class _ImagePickScreenState extends State<ImagePickScreen> {
-  File _image;
-
-  Future getImage() async {
-    var image = await ImagePicker.pickImage(source: ImageSource.gallery);
-
-    setState(() {
-      _image = image;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Select image from gallery'),
-      ),
-      body: Center(
-        child: _image == null
-            ? Text('No image selected.')
-            : Image.file(_image),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: getImage,
-        tooltip: 'Pick Image',
-        child: Icon(Icons.add_photo_alternate),
-      ),
-        bottomNavigationBar: Material
-          (
-          child: RaisedButton(
-
-            child:
-            Text('Upload', style: TextStyle(fontSize: 20)),
-            color: Color(0xff1B5E20),
-            onPressed: (
-
-
-                ) {
-              // Navigate to second route when tapped.
-              // Navigator.pushNamed(context, '/second');
+  ListView getBookListView() {
+    return ListView.builder(
+      itemCount: count,
+      itemBuilder: (BuildContext context, int position) {
+        return Card(
+          color: Colors.white,
+          elevation: 2.0,
+          child: ListTile(
+            leading: CircleAvatar(
+              backgroundColor: Colors.amber,
+              child: Text(getFirstLetter(this.bookList[position].name),
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            title: Text(this.bookList[position].name,
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text(this.bookList[position].authName),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                GestureDetector(
+                  child: Icon(Icons.delete, color: Colors.red,),
+                  onTap: () {
+                    _delete(context, bookList[position]);
+                  },
+                ),
+              ],
+            ),
+            onTap: () {
+              debugPrint("ListTile Tapped");
+              navigateToDetail(context,this.bookList[position], 'Edit Book');
             },
           ),
-
-        ),
-
+        );
+      },
     );
   }
-}
 
 
+  getFirstLetter(String title) {
+    return title.substring(0, 2);
+  }
 
-class CameraPickScreen extends StatefulWidget {
+  void _delete(BuildContext context, Book book) async {
+    int result = await databaseHelper.deleteBook(book.name);
+    if (result != 0) {
+      _showSnackBar(context, 'Book Deleted Successfully');
+      updateListView();
+    }
+  }
 
-  @override
-  _CameraPickScreenState createState() => _CameraPickScreenState();
+  void _showSnackBar(BuildContext context, String message) {
+    final snackBar = SnackBar(content: Text(message));
+    Scaffold.of(context).showSnackBar(snackBar);
+  }
 
-}
+  void navigateToDetail(BuildContext context, Book book, String title) async {
+    bool result =
+    await Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return BookDetailScreen(book, title);
+    }));
 
-class _CameraPickScreenState extends State<CameraPickScreen> {
-  File _image;
+    if (result == true) {
+      updateListView();
+    }
+  }
 
-  Future getImage() async {
-    var image = await ImagePicker.pickImage(source: ImageSource.camera);
-
-    setState(() {
-      _image = image;
+  void updateListView() {
+    final Future<Database> dbFuture = databaseHelper.initializeDatabase();
+    dbFuture.then((database) {
+      Future<List<Book>> bookListFuture = databaseHelper.getBookList();
+      bookListFuture.then((bookList) {
+        setState(() {
+          this.bookList = bookList;
+          this.count = bookList.length;
+        });
+      });
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Capture image'),
-      ),
-      body: Center(
-        child: _image == null
-            ? Text('No image captured.')
-            : Image.file(_image),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: getImage,
-        tooltip: 'Capture Image',
-        child: Icon(Icons.add_a_photo),
-      ),
-      bottomNavigationBar: Material
-        (
-        child: RaisedButton(
-
-          child:
-          Text('Upload', style: TextStyle(fontSize: 20)),
-          color: Color(0xff1B5E20),
-          onPressed: (
-
-
-              ) {
-            // Navigate to second route when tapped.
-            // Navigator.pushNamed(context, '/second');
-          },
-        ),
-
-      ),
-    );
-  }
-}
-/*
-class Book {
-
-  final int score;
-  final String name;
-  final String Authname;
-  final String Summary;
-
-  Book({this.score, this.name, this.Authname, this.Summary});
-
-  Map<String, dynamic> toMap() {
-    return {
-      'Name': name,
-      'Score': score,
-      'Author': Authname,
-      'Summary': Summary,
-    };
-  }
-}
-
-  Future<void> insertBook(Book book) async {
-    // Get a reference to the database.
-    final Database db = await database;
-
-    // Insert the Dog into the correct table. You might also specify the
-    // `conflictAlgorithm` to use in case the same dog is inserted twice.
-    //
-    // In this case, replace any previous data.
-    await db.insert(
-      'books',
-      book.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
 
 }
-// Create a Dog and add it to the dogs table.
-  final fido =  Book(
-    name: 'how to train your cat',
-    score: 8,
-    Authname: 'Pierre Adel',
-    Summary: 'this book is very good.'
-  );
-
-await insertBook(fido);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Open the database and store the reference.
-final Future<Database> database = openDatabase(
-  // Set the path to the database. Note: Using the `join` function from the
-  // `path` package is best practice to ensure the path is correctly
-  // constructed for each platform.
-    join(await getDatabasesPath(), 'book_database.db'),
-);
-
-final Future<Database> database = openDatabase(
-  // Set the path to the database.
-    join(await getDatabasesPath(), 'book_database.db'),
-// When the database is first created, create a table to store dogs.
-    onCreate: (db, version) {
-// Run the CREATE TABLE statement on the database.
-return db.execute(
-"CREATE TABLE dogs(Name TEXT PRIMARY KEY, Score INTEGER, Author TEXT, Summary TEXT)",
-);
-},
-// Set the version. This executes the onCreate function and provides a
-// path to perform database upgrades and downgrades.
-version: 1,
-);
-*/
