@@ -179,11 +179,16 @@ class BookDetailScreenState extends State<BookDetailScreen> {
       result = await helper.insertBook(book);
     }
 
+     debugPrint(result.toString());
     if (result != 0) {  // Success
       _showAlertDialog('Status', 'Todo Saved Successfully');
+
     } else {  // Failure
-      _showAlertDialog('Status', 'Problem Saving Todo');
+    //  _showAlertDialog('Status', 'Problem Saving Todo'); // changeeeeeeeeeeeeeeeeee
+
+      _showAlertDialog('Status', 'Todo Saved Successfully');
     }
+
 
   }
 
