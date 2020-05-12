@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart' as dio;
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -81,23 +83,6 @@ class Uploader {
     dio.options.receiveTimeout = 50000;
 //    dio.options.headers = <Header Json>;
 
-    var response2 = await dio.get(uploadEndPoint).then((result) {
-      result.data.forEach((element) {
-        if(element['found']) {
-          var book = Book(element['title'],
-              element['average_rating'],
-              element['url'],
-              element['author'],
-              '',
-              element['summary']
-          );
-          helper.insertTodo(book, 'book_temp_table');
-        }
-      });
-
-    }).catchError((onError) {
-      print("error");
-    });
     FormData formData = FormData.fromMap({
       "file": MultipartFile.fromBytes(bytes, filename: 'ya rab')
     });
@@ -110,23 +95,45 @@ class Uploader {
         )).catchError((onError) {
 
     });
-    Navigator.pushNamed(context, '/results');
 
+    new Timer( const Duration(seconds: 60), () async {
+      var response2 = await dio.get(uploadEndPoint).then((result) {
+        result.data.forEach((element) {
+          if(element['found']) {
+            var book = Book(element['title'],
+                element['average_rating'],
+                element['url'],
+                element['author'],
+                '',
+                element['summary']
+            );
+            helper.insertTodo(book, 'book_temp_table');
+          }
+        });
+      }).catchError((onError) {
+        print("error");
+      });
+      Navigator.pushNamed(context, '/results');
+    });
 
+//    Navigator.pushNamed(context, '/results');
 
-    if (response != null) {
-      var res = Map<String, dynamic>.from(response.data);
-
-
-
-      setStatus(response.statusCode == 200 ? res['title'] : errorMessage);
-
-
-
-    } else {
-      setStatus('error: null response');
-//      _showSnackBar(context, ' null response');
-    }
+//    if (response != null) {
+//      var res = Map<String, dynamic>.from(response.data);
+//      setStatus(response.statusCode == 200 ? res['title'] : errorMessage);
+//    } else {
+//      setStatus('error: null response');
+////      _showSnackBar(context, ' null response');
+//    }
   }
+
+//  startTimeout([int milliseconds]) {
+//    var duration = const Duration(seconds: 60);
+//    return new Timer(duration, handleTimeout);
+//  }
+//
+//  void handleTimeout() {  // callback function
+//    Navigator.pushNamed(context, '/results');
+//  }
 }
 
