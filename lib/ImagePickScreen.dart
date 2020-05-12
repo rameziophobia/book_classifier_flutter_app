@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:testprojectdb/Uploader.dart';
+
 import 'dart:ui';
 import 'dart:io';
 
+import 'dart:convert';
 
 class ImagePickScreen extends StatefulWidget {
 
@@ -12,10 +15,18 @@ class ImagePickScreen extends StatefulWidget {
 }
 
 class _ImagePickScreenState extends State<ImagePickScreen> {
+  Uploader uploader = Uploader();
   File _image;
-
+  List<int>  bytes;
+  String base64Image;
   Future getImage() async {
     var image = await ImagePicker.pickImage(source: ImageSource.gallery);
+
+    bytes = image.readAsBytesSync();
+    this.setState(() {
+      _image = image;
+      base64Image = base64Encode(bytes);
+    });
 
     setState(() {
       _image = image;
@@ -45,13 +56,10 @@ class _ImagePickScreenState extends State<ImagePickScreen> {
           child:
           Text('Upload', style: TextStyle(fontSize: 20)),
           color: Color(0xff1B5E20),
-          onPressed: (
-
-
-              ) {
+          onPressed: () => uploader.startUpload(_image,context)
             // Navigate to second route when tapped.
             // Navigator.pushNamed(context, '/second');
-          },
+
         ),
 
       ),
