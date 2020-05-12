@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'Todo.dart';
+import 'Book.dart';
 import 'database_helper.dart';
-import 'todo_detail.dart';
+import 'book_detail.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 
@@ -159,7 +159,7 @@ class TodoListState extends State<TodoList> {
     void viewDetail(Book todo, String title) async {
       bool result =
       await Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return TodoDetailView(todo, title);
+        return TodoDetailView(todo, title,false);
       }));
 
     if (result == true) {

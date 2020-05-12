@@ -2,7 +2,7 @@ import 'package:sqflite/sqflite.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
-import 'Todo.dart';
+import 'Book.dart';
 
 class DatabaseHelper {
 
@@ -86,6 +86,12 @@ class DatabaseHelper {
   Future<int> deleteBook(int id,String table) async {
     var db = await this.database;
     int result = await db.rawDelete('DELETE FROM $table WHERE $colId = $id');
+    return result;
+  }
+
+  Future<int> deleteAllTemp() async {
+    var db = await this.database;
+    int result = await db.rawDelete('DELETE FROM $bookTempTable');
     return result;
   }
 

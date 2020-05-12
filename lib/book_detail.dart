@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'Todo.dart';
+import 'Book.dart';
 import 'database_helper.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
@@ -324,15 +324,16 @@ class TodoDetailView extends StatefulWidget {
 
   final String appBarTitle;
   final Book todo;
+  final bool resultView;
 
 
 
-  TodoDetailView(this.todo, this.appBarTitle);
+  TodoDetailView(this.todo, this.appBarTitle,this.resultView);
 
   @override
   State<StatefulWidget> createState() {
 
-    return TodoDetailViewState(this.todo, this.appBarTitle);
+    return TodoDetailViewState(this.todo, this.appBarTitle,this.resultView);
   }
 }
 
@@ -342,12 +343,13 @@ class TodoDetailViewState extends State<TodoDetailView> {
 
   String appBarTitle;
   Book todo;
+  bool resultView;
 
   TextEditingController titleController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
 
 
-  TodoDetailViewState(this.todo, this.appBarTitle);
+  TodoDetailViewState(this.todo, this.appBarTitle,this.resultView);
 
   @override
   Widget build(BuildContext context) {
@@ -404,7 +406,7 @@ class TodoDetailViewState extends State<TodoDetailView> {
                       ),
                     )
                 ),
-                Padding(
+              /*  Padding(
                     padding: EdgeInsets.only(top: 15.0, bottom: 15.0),
                     child: Text.rich(
                       TextSpan(
@@ -415,7 +417,7 @@ class TodoDetailViewState extends State<TodoDetailView> {
                         ],
                       ),
                     )
-                ),
+                ),*/
 
                 Padding(
                     padding: EdgeInsets.only(top: 15.0, bottom: 15.0),
@@ -533,8 +535,14 @@ class TodoDetailViewState extends State<TodoDetailView> {
       _showAlertDialog('Status', 'No Todo was deleted');
       return;
     }
+    int result;
 
-    int result = await helper.deleteBook(todo.id,'book_table');
+    if (resultView)
+      result = await helper.deleteBook(todo.id,'book_temp_table');
+    else
+      result = await helper.deleteBook(todo.id,'bookTempTable');
+
+
     if (result != 0) {
       _showAlertDialog('Status', 'Todo Deleted Successfully');
     } else {

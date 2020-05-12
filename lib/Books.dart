@@ -1,11 +1,9 @@
-/*import 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'Todo.dart';
+import 'Book.dart';
 import 'database_helper.dart';
-import 'todo_detail.dart';
+import 'book_detail.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-
 
 class ResultView extends StatefulWidget {
   @override
@@ -39,11 +37,9 @@ class ResultViewState extends State<ResultView> {
     Text('Return to home screen', style: TextStyle(fontSize: 20)),
     color: Color(0xFF1DE9B6),
     onPressed: () => Navigator.pushNamed(context, '/')
-    // Navigate to second route when tapped.
-    // Navigator.pushNamed(context, '/second');
 
     ),
-
+      ),
     );
 
   }
@@ -68,19 +64,12 @@ class ResultViewState extends State<ResultView> {
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 GestureDetector(
-                  child: Icon( alreadySaved ? Icons.favorite : Icons.favorite_border,
-                    color: alreadySaved ? Colors.red : null,),
+                  child: Icon(Icons.favorite,color: Colors.red,),
                   onTap: () {
-                setState(() {
-                if (alreadySaved) {
-                _saved.remove(pair);
-                } else {
-                _saved.add(pair);
-                }
-                });
-
-        // _delete(context, bookList[position]);
+                   // _delete(context, bookList[position]);
+                    _save(context, bookList[position]);
                   },
+
                 ),
               ],
             ),
@@ -107,7 +96,7 @@ class ResultViewState extends State<ResultView> {
   void viewDetail(Book todo, String title) async {
     bool result =
     await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return TodoDetailView(todo, title);
+      return TodoDetailView(todo, title,true);
     }));
 
     if (result == true) {
@@ -118,7 +107,7 @@ class ResultViewState extends State<ResultView> {
   void updateListView() {
     final Future<Database> dbFuture = databaseHelper.initializeDatabase();
     dbFuture.then((database) {
-      Future<List<Book>> todoListFuture = databaseHelper.getBookList();
+      Future<List<Book>> todoListFuture = databaseHelper.getBookList('book_temp_table');
       todoListFuture.then((todoList) {
         setState(() {
           this.bookList = todoList;
@@ -128,5 +117,37 @@ class ResultViewState extends State<ResultView> {
     });
   }
 
+  void _save(BuildContext context, Book todo) async {
 
-}*/
+    //todo.date = DateFormat.yMMMd().format(DateTime.now());
+    int result;
+    if (todo.id != null) {  // Case 1: Update operation
+      result = await databaseHelper.updateTodo(todo,'book_table');
+    } else { // Case 2: Insert Operation
+      result = await databaseHelper.insertTodo(todo,'book_table');
+    }
+
+    if (result != 0) {  // Success
+      _showAlertDialog('Status', 'Book Saved Successfully');
+    } else {  // Failure
+      _showAlertDialog('Status', 'Problem Saving Book');
+    }
+
+  }
+
+  void _showAlertDialog(String title, String message) {
+
+    AlertDialog alertDialog = AlertDialog(
+      title: Text(title),
+      content: Text(message),
+    );
+    showDialog(
+        context: context,
+        builder: (_) => alertDialog
+    );
+  }
+
+
+
+
+}

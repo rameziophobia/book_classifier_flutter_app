@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart' as dio;
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-
+import 'Book.dart';
 import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:io';
@@ -9,10 +9,11 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
 import 'dart:io';
+import 'database_helper.dart';
 
 class Uploader {
-
-  static final String uploadEndPoint = 'https://book-spine.herokuapp.com/';
+  DatabaseHelper helper = DatabaseHelper();
+  static final String uploadEndPoint = 'https://book-spine.herokuapp.com/shelf/';
   static Uploader _uploader; // Singleton DatabaseHelper
   String status = '';
   String errorMessage = 'Error Uploading Image';
@@ -33,9 +34,22 @@ class Uploader {
     return _uploader;
   }
 
+  void _showAlertDialog(String title, String message,BuildContext context) {
 
-  startUpload(File _imageFile,BuildContext context,) {
-    _showSnackBar(context, ' Uploading');
+    AlertDialog alertDialog = AlertDialog(
+      title: Text(title),
+      content: Text(message),
+    );
+    showDialog(
+        context: context,
+        builder: (_) => alertDialog
+    );
+  }
+
+  startUpload(File _imageFile,BuildContext context) {
+   // _showSnackBar(context, ' Uploading');
+    _showAlertDialog('Status', 'Uploading Image...',  context);
+
     bytes = _imageFile.readAsBytesSync();
     setStatus('Uploading Image...');
     if (null == _imageFile) {
@@ -57,13 +71,33 @@ class Uploader {
     status = message;
   }
 
+
   upload(String fileName,BuildContext context) async {
+    helper.deleteAllTemp();
     var dio = new Dio();
     dio.options.baseUrl = uploadEndPoint;
-    dio.options.connectTimeout = 50000; //50s
-    dio.options.sendTimeout = 50000; //50s
+    dio.options.connectTimeout = 100000; //100s
+    dio.options.sendTimeout = 100000; //100s
     dio.options.receiveTimeout = 50000;
 //    dio.options.headers = <Header Json>;
+
+    var response2 = await dio.get(uploadEndPoint).then((result) {
+      result.data.forEach((element) {
+        if(element['found']) {
+          var book = Book(element['title'],
+              element['average_rating'],
+              element['url'],
+              element['author'],
+              '',
+              element['summary']
+          );
+          helper.insertTodo(book, 'book_temp_table');
+        }
+      });
+
+    }).catchError((onError) {
+      print("error");
+    });
     FormData formData = FormData.fromMap({
       "file": MultipartFile.fromBytes(bytes, filename: 'ya rab')
     });
@@ -76,6 +110,9 @@ class Uploader {
         )).catchError((onError) {
 
     });
+    Navigator.pushNamed(context, '/results');
+
+
 
     if (response != null) {
       var res = Map<String, dynamic>.from(response.data);
@@ -83,13 +120,13 @@ class Uploader {
 
 
       setStatus(response.statusCode == 200 ? res['title'] : errorMessage);
-      // HERE CALL THE NEXT SCREEN AND PASS RESULTS
-      // use this
-      // idea: store the books in a temp table in the db
-      // Navigator.pushNamed(context, '/results')
+
+
+
     } else {
       setStatus('error: null response');
-      _showSnackBar(context, ' null response');
+//      _showSnackBar(context, ' null response');
     }
   }
 }
+

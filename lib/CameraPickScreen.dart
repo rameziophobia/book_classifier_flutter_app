@@ -54,7 +54,7 @@ class _CameraPickScreenState extends State<CameraPickScreen> {
           child:
           Text('Upload', style: TextStyle(fontSize: 20)),
           color: Color(0xff1B5E20),
-           onPressed: () => uploader.startUpload(_image,context)
+           onPressed: () => {if (_image != null){ uploader.startUpload(_image,context)}},
             // Navigate to second route when tapped.
             // Navigator.pushNamed(context, '/second');
 
