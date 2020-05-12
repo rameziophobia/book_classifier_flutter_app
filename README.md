@@ -1,6 +1,6 @@
-# flutter_spine_classifier
+# testprojectdb
 
-A new Flutter project.
+A new Flutter application.
 
 ## Getting Started
 
