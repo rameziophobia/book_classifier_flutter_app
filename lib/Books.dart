@@ -59,7 +59,7 @@ class ResultViewState extends State<ResultView> {
             ),
             title: Text(this.bookList[position].title,
                 style: TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: Text(this.bookList[position].description),
+            subtitle: Text(this.bookList[position].authname),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
@@ -120,12 +120,7 @@ class ResultViewState extends State<ResultView> {
   void _save(BuildContext context, Book todo) async {
 
     //todo.date = DateFormat.yMMMd().format(DateTime.now());
-    int result;
-    if (todo.id != null) {  // Case 1: Update operation
-      result = await databaseHelper.updateTodo(todo,'book_table');
-    } else { // Case 2: Insert Operation
-      result = await databaseHelper.insertTodo(todo,'book_table');
-    }
+    int result = await databaseHelper.insertTodo(todo,'book_table');
 
     if (result != 0) {  // Success
       _showAlertDialog('Status', 'Book Saved Successfully');

@@ -57,8 +57,8 @@ class _ImagePickScreenState extends State<ImagePickScreen> {
           Text('Upload', style: TextStyle(fontSize: 20)),
           color: Color(0xff1B5E20),
           onPressed: () => {if (_image != null){ uploader.startUpload(_image,context)}},
-            // Navigate to second route when tapped.
-            // Navigator.pushNamed(context, '/second');
+          // Navigate to second route when tapped.
+          // Navigator.pushNamed(context, '/second');
 
         ),
 

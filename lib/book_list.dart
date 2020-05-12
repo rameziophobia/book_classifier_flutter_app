@@ -79,7 +79,7 @@ class TodoListState extends State<TodoList> {
           SpeedDialChild(
               child: Icon(Icons.book),
               backgroundColor: Colors.black,
-              label: 'Book(for debug)',
+              label: 'add a book',
               labelStyle: TextStyle(fontSize: 19.0),
               onTap: () =>
                   navigateToDetail(Book('', '', '','',''), 'Add Book')
@@ -110,7 +110,7 @@ class TodoListState extends State<TodoList> {
             ),
             title: Text(this.bookList[position].title,
                 style: TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: Text(this.bookList[position].description),
+            subtitle: Text(this.bookList[position].authname),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
